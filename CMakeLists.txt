@@ -16,6 +16,7 @@ if(MSVC)
         /wd4251   # dll-interface warnings from CYdLidar.h (3rdparty)
         /wd4324   # structure padded due to alignment (ring_buffer)
         /wd4189   # local variable initialised but not referenced
+        /WX-      # Do not treat warnings as errors
     )
     # Suppress MSVC secure-function deprecation warnings in 3rdparty code
     add_compile_definitions(

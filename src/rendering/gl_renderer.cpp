@@ -4,8 +4,7 @@
 
 namespace ols::rendering {
 
-GLRenderer::GLRenderer() : pointcloud_shader_(std::make_unique<Shader>()) {
-}
+GLRenderer::GLRenderer() : pointcloud_shader_(std::make_unique<Shader>()) {}
 
 GLRenderer::~GLRenderer() {
     if (vao_) glDeleteVertexArrays(1, &vao_);
@@ -23,42 +22,35 @@ bool GLRenderer::initialize() {
 
     glBindVertexArray(vao_);
     glBindBuffer(GL_ARRAY_BUFFER, vbo_);
-    // Persistent allocation sized for max_vertices_
     glBufferData(GL_ARRAY_BUFFER, max_vertices_ * sizeof(RenderVertex), nullptr, GL_DYNAMIC_DRAW);
 
-    // Position (x, y)
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(RenderVertex), (void*)offsetof(RenderVertex, x));
     glEnableVertexAttribArray(0);
-    // Intensity
     glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, sizeof(RenderVertex), (void*)offsetof(RenderVertex, intensity));
     glEnableVertexAttribArray(1);
-    // Range
     glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, sizeof(RenderVertex), (void*)offsetof(RenderVertex, range));
     glEnableVertexAttribArray(2);
-    // Age
     glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(RenderVertex), (void*)offsetof(RenderVertex, age));
     glEnableVertexAttribArray(3);
 
     glBindVertexArray(0);
-
     return true;
 }
 
 void GLRenderer::resize(int width, int height) {
-    viewport_width_ = width;
+    viewport_width_  = width;
     viewport_height_ = height > 0 ? height : 1;
 }
 
-void GLRenderer::setMaxRange(float max_range) {
-    max_range_ = max_range;
-}
-
-void GLRenderer::setColorMode(int mode) {
-    color_mode_ = mode;
-}
-
-void GLRenderer::setHistoryDecay(float decay) {
-    history_decay_ = decay;
+void GLRenderer::setMaxRange(float max_range)    { max_range_ = max_range; }
+void GLRenderer::setColorMode(int mode)          { color_mode_ = mode; }
+void GLRenderer::setHistoryDecay(float decay)    { history_decay_ = decay; }
+void GLRenderer::setPointSize(float size)        { point_size_ = size; }
+void GLRenderer::setCircularPoints(bool circular){ circular_points_ = circular; }
+void GLRenderer::setZoomPan(float zoom, float px, float py) {
+    zoom_  = zoom;
+    pan_x_ = px;
+    pan_y_ = py;
 }
 
 void GLRenderer::updatePointCloud(const std::vector<RenderVertex>& points) {
@@ -80,18 +72,32 @@ void GLRenderer::render() {
     pointcloud_shader_->use();
 
     float aspect = static_cast<float>(viewport_width_) / static_cast<float>(viewport_height_);
-    float r = max_range_ > 0.1f ? max_range_ : 0.1f;
-    glm::mat4 projection = glm::ortho(-r * aspect, r * aspect, -r, r, -1.0f, 1.0f);
-    
-    pointcloud_shader_->setMat4("projection", projection);
-    pointcloud_shader_->setFloat("maxRange", max_range_);
-    pointcloud_shader_->setInt("colorMode", color_mode_);
+    float r = (max_range_ > 0.1f ? max_range_ : 0.1f) / zoom_;
+
+    // Ortho projection centered on (pan_x, pan_y) in world space
+    glm::mat4 projection = glm::ortho(
+        -r * aspect + pan_x_,  r * aspect + pan_x_,
+        -r          + pan_y_,  r          + pan_y_,
+        -1.0f, 1.0f
+    );
+
+    pointcloud_shader_->setMat4("projection",   projection);
+    pointcloud_shader_->setFloat("maxRange",     max_range_);
+    pointcloud_shader_->setInt("colorMode",      color_mode_);
     pointcloud_shader_->setFloat("historyDecay", history_decay_);
+    pointcloud_shader_->setFloat("pointSize",    point_size_);
+    pointcloud_shader_->setBool("circularPts",   circular_points_);
 
     glBindVertexArray(vao_);
-    glPointSize(3.0f); // Make points visible
-    glDrawArrays(GL_POINTS, 0, current_vertex_count_);
+    glDrawArrays(GL_POINTS, 0, static_cast<GLsizei>(current_vertex_count_));
     glBindVertexArray(0);
+}
+
+bool GLRenderer::readPixels(std::vector<unsigned char>& out_rgba) const {
+    if (viewport_width_ <= 0 || viewport_height_ <= 0) return false;
+    out_rgba.resize(static_cast<size_t>(viewport_width_) * viewport_height_ * 4);
+    glReadPixels(0, 0, viewport_width_, viewport_height_, GL_RGBA, GL_UNSIGNED_BYTE, out_rgba.data());
+    return true;
 }
 
 } // namespace ols::rendering

@@ -10,10 +10,13 @@ out float vRange;
 out float vAge;
 
 uniform mat4 projection;
+uniform float pointSize;   // base point size from UI slider
+uniform bool  circularPts; // whether to use circular discard
 
 void main() {
     gl_Position = projection * vec4(aPos, 0.0, 1.0);
-    gl_PointSize = mix(6.0, 1.5, aAge); // Point size based on age (newer = bigger)
+    // Newer points (age=0) are full size; old (age=1) shrink to 30%
+    gl_PointSize = mix(pointSize, pointSize * 0.3, aAge);
     vIntensity = aIntensity;
     vRange = aRange;
     vAge = aAge;

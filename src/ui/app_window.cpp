@@ -151,6 +151,34 @@ void AppWindow::processScanData() {
         
         auto_ranger_.process(filtered_points);
 
+        // Reset zone trigger statuses
+        for (int zi = 0; zi < UIState::NUM_ZONES; ++zi) {
+            state_.zones[zi].triggered = false;
+        }
+
+        // Check if any point triggers zone alerts
+        for (const auto& pt : filtered_points) {
+            float angle_deg = pt.angle * 180.0f / 3.14159265f;
+            if (angle_deg < 0.0f) angle_deg += 360.0f;
+            
+            for (int zi = 0; zi < UIState::NUM_ZONES; ++zi) {
+                auto& z = state_.zones[zi];
+                if (!z.enabled) continue;
+                
+                // Angle wrap check (if min_angle > max_angle, it spans across 0/360 boundary)
+                bool angle_match = false;
+                if (z.min_angle_deg <= z.max_angle_deg) {
+                    angle_match = (angle_deg >= z.min_angle_deg && angle_deg <= z.max_angle_deg);
+                } else {
+                    angle_match = (angle_deg >= z.min_angle_deg || angle_deg <= z.max_angle_deg);
+                }
+                
+                if (angle_match && pt.range >= z.min_radius && pt.range <= z.max_radius) {
+                    z.triggered = true;
+                }
+            }
+        }
+
         state_.point_count = filtered_points.size();
         state_.r_inst = auto_ranger_.getInstRange();
         state_.r_smooth = auto_ranger_.getSmoothRange();

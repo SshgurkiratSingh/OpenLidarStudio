@@ -36,11 +36,23 @@ OpenLidarStudio is a cross-platform desktop tool built with **modern C++17**, **
 
 ## Features
 
-### Core Visualization
+### Core Visualization & Aesthetics
 - **OpenGL 3.3+ point-cloud renderer** with a custom GLSL shader pipeline
+- **Anti-aliased Circular Points** — toggleable soft-edged round points for a premium radar aesthetic
 - **Turbo colormap** — points colored by range (close = blue, far = red) or intensity
-- **Concentric distance rings** — labeled in metres, auto-scaled to the current sensor range
-- **Hover tooltip** — shows exact distance (m) and angle (°) at the mouse cursor with a live aiming line
+- **Concentric distance rings & Cardinal markers** — labeled in metres with N/S/E/W headings
+- **Cartesian Grid Overlay** — helper grid with configurable spacing in meters (e.g. 0.5m)
+- **Point Size Adjuster** — scale point width dynamically from 1px to 10px
+
+### Interactive Viewport Tools
+- **Precision Zoom & Pan** — zoom using the mouse wheel (0.2x to 20x) and drag using the middle mouse button to inspect specific clusters. Double-click MMB resets the view.
+- **Ruler Measurement Tool** — measure physical distance in meters by placing marker A and marker B with left-click. Right-click to clear.
+- **Frame Screenshots** — export pixel-perfect high-resolution PNGs of the viewport directly from the OpenGL framebuffer.
+- **Hover tooltips** — displays real-time distance and angle at the mouse cursor with an aiming guide line.
+
+### Guard Zone Alerts
+- Set up to **4 independent alarm zones** defined by customizable distance boundaries and angular ranges (e.g. 0° to 90°, 0.5m to 2m).
+- Real-time alarm trigger evaluation — zones flash red instantly if a point falls within their bounds.
 
 ### Motion History Trails
 - **Toggleable trail system** — enable/disable in the UI without reconnecting
@@ -59,9 +71,9 @@ OpenLidarStudio is a cross-platform desktop tool built with **modern C++17**, **
 
 ### Telemetry & Analytics
 - Real-time **30-second scrolling plots** for:
-  - Instantaneous range, smoothed range
-  - Adaptive alpha coefficient
-  - Points per sweep
+- Instantaneous range, smoothed range
+- Adaptive alpha coefficient
+- Points per sweep
 - Inline stats bar (Points, RPM, Range)
 
 ### Recording & Replay
