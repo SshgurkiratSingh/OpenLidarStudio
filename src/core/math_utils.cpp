@@ -9,11 +9,13 @@ void MathUtils::polarToCartesian(float r, float theta_rad, float& x, float& y) {
 }
 
 float MathUtils::degreesToRadians(float degrees) {
-    return degrees * (static_cast<float>(M_PI) / 180.0f);
+    constexpr float kPi = 3.14159265358979323846f;
+    return degrees * (kPi / 180.0f);
 }
 
 float MathUtils::radiansToDegrees(float radians) {
-    return radians * (180.0f / static_cast<float>(M_PI));
+    constexpr float kPi = 3.14159265358979323846f;
+    return radians * (180.0f / kPi);
 }
 
 } // namespace ols::core
