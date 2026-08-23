@@ -1,0 +1,42 @@
+# Build directories
+build/
+out/
+cmake-build-*/
+
+# CMake generated
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+install_manifest.txt
+CTestTestfile.cmake
+_deps/
+
+# Compiled artifacts
+*.o
+*.a
+*.so
+*.dll
+*.exe
+*.out
+
+# IDE / Editor
+.vscode/
+.idea/
+*.user
+*.suo
+*.sln.docview
+imgui.ini
+
+# Recording output files
+*.ols_meta
+*.ols_data
+*.csv
+*.json
+
+# Logs
+*.log
+strace.log
+
+# Scratch / test builds
+scratch/

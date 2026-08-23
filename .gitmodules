@@ -1,0 +1,3 @@
+[submodule "3rdparty/ydlidar_sdk"]
+	path = 3rdparty/ydlidar_sdk
+	url = https://github.com/YDLIDAR/sdk.git
