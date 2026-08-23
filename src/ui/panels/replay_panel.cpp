@@ -11,7 +11,7 @@ namespace ols::ui {
 
 ReplayPanel::ReplayPanel() {
     std::memset(file_buf_, 0, sizeof(file_buf_));
-    std::strncpy(file_buf_, "lidar_capture", sizeof(file_buf_) - 1);
+    std::snprintf(file_buf_, sizeof(file_buf_), "%s", "lidar_capture");
 }
 
 void ReplayPanel::resizeFramebuffer(int w, int h) {

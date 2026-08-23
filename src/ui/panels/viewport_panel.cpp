@@ -74,9 +74,7 @@ void ViewportPanel::drawOverlay(const UIState& state, const ImVec2& pos, const I
     
     // Draw concentric rings based on r_final
     float r = state.r_final > 0.1f ? state.r_final : 0.1f;
-    float aspect = size.x / size.y;
-    // Map radius in meters to pixels based on the orthographic projection: [-r*aspect, r*aspect] x [-r, r]
-    // The height 2*r maps to size.y
+    // Map radius in meters to pixels: height 2*r maps to size.y
     float pixels_per_meter = size.y / (2.0f * r);
     
     for (int i = 1; i <= 5; ++i) {

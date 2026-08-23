@@ -5,11 +5,26 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# Optimization Flags
+# Compiler flags
 if(MSVC)
-    add_compile_options(/W4 /O2 /permissive- /Zc:preprocessor)
+    # /W3 for our code, suppress known noisy warnings from YDLIDAR SDK headers
+    add_compile_options(
+        /W3
+        /O2
+        /permissive-
+        /Zc:preprocessor
+        /wd4251   # dll-interface warnings from CYdLidar.h (3rdparty)
+        /wd4324   # structure padded due to alignment (ring_buffer)
+        /wd4189   # local variable initialised but not referenced
+    )
+    # Suppress MSVC secure-function deprecation warnings in 3rdparty code
+    add_compile_definitions(
+        _CRT_SECURE_NO_WARNINGS
+        _WINSOCK_DEPRECATED_NO_WARNINGS
+    )
 else()
-    add_compile_options(-Wall -Wextra -Wpedantic -O3 -march=native)
+    add_compile_options(-Wall -Wextra -Wpedantic -O3 -march=native
+        -Wno-interference-size)
 endif()
 
 # Embedded YDLIDAR SDK Integration
@@ -88,6 +103,9 @@ endif()
 
 target_include_directories(OpenLidarStudio PRIVATE
     include
+)
+# Mark 3rdparty SDK headers as SYSTEM so MSVC/GCC suppresses their warnings
+target_include_directories(OpenLidarStudio SYSTEM PRIVATE
     3rdparty/ydlidar_sdk/include
     3rdparty/ydlidar_sdk/src
 )
