@@ -102,18 +102,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download Linux artifact
+      # Download all artifacts into the working directory (merge-multiple flattens subdirs)
+      - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          name: linux-build
+          merge-multiple: true
+          path: release-assets
 
-      - name: Download Windows artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: windows-build
+      - name: List downloaded files (debug)
+        run: find release-assets -type f
 
       - name: Generate SHA256 checksums
         run: |
+          cd release-assets
           sha256sum \
             OpenLidarStudio-Linux-${{ github.ref_name }}.tar.gz \
             OpenLidarStudio-Windows-${{ github.ref_name }}.zip \
@@ -156,8 +157,8 @@ jobs:
           draft: false
           prerelease: ${{ contains(github.ref_name, '-rc') || contains(github.ref_name, '-beta') || contains(github.ref_name, '-alpha') }}
           files: |
-            OpenLidarStudio-Linux-${{ github.ref_name }}.tar.gz
-            OpenLidarStudio-Windows-${{ github.ref_name }}.zip
-            SHA256SUMS.txt
+            release-assets/OpenLidarStudio-Linux-${{ github.ref_name }}.tar.gz
+            release-assets/OpenLidarStudio-Windows-${{ github.ref_name }}.zip
+            release-assets/SHA256SUMS.txt
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
