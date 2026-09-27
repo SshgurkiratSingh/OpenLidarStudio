@@ -53,6 +53,12 @@ OpenLidarStudio is a cross-platform desktop tool built with **modern C++17**, **
 ### Guard Zone Alerts
 - Set up to **4 independent alarm zones** defined by customizable distance boundaries and angular ranges (e.g. 0° to 90°, 0.5m to 2m).
 - Real-time alarm trigger evaluation — zones flash red instantly if a point falls within their bounds.
+- **Audio Alerts** — optionally enable cross-platform audible alarms for individual zones that trigger when breached.
+
+### Person Tracking Mode
+- Uses **Euclidean Clustering** and **Nearest-Neighbor Tracking** to detect and track human-sized objects in real-time.
+- Displays a tracking bounding circle, unique ID, and velocity vector for each tracked object.
+- Highly tunable: configure cluster distance, minimum object size, and maximum object size for your specific environment.
 
 ### Motion History Trails
 - **Toggleable trail system** — enable/disable in the UI without reconnecting

@@ -11,7 +11,9 @@
 #include <open_lidar_studio/pipeline/signal_filter.hpp>
 #include <open_lidar_studio/pipeline/auto_ranger.hpp>
 #include <open_lidar_studio/pipeline/async_logger.hpp>
+#include <open_lidar_studio/pipeline/object_tracker.hpp>
 #include <open_lidar_studio/rendering/gl_renderer.hpp>
+#include <open_lidar_studio/core/audio_manager.hpp>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -48,7 +50,9 @@ private:
     pipeline::SignalFilter signal_filter_;
     pipeline::AutoRanger auto_ranger_;
     pipeline::AsyncLogger async_logger_;
+    pipeline::ObjectTracker object_tracker_;
     rendering::GLRenderer gl_renderer_;
+    core::AudioManager audio_manager_;
     
     // Concurrency between lidar thread and UI thread
     std::mutex scan_mutex_;

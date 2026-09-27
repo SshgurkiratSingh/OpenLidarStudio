@@ -56,6 +56,10 @@ bool AppWindow::initialize() {
         return false;
     }
 
+    if (!audio_manager_.initialize()) {
+        std::cerr << "Audio manager failed to initialize, sound alerts will be disabled." << std::endl;
+    }
+
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -177,6 +181,26 @@ void AppWindow::processScanData() {
                     z.triggered = true;
                 }
             }
+        }
+
+        // Trigger Audio Alerts
+        for (int zi = 0; zi < UIState::NUM_ZONES; ++zi) {
+            if (state_.zones[zi].enabled && state_.zones[zi].triggered && state_.zones[zi].play_sound) {
+                audio_manager_.playAlertSound();
+                break; // Only play once per frame even if multiple zones trigger
+            }
+        }
+
+        // Process Person Tracking
+        if (state_.enable_person_tracking) {
+            float dt = 1.0f / state_.current_rpm * 60.0f; // Approximate dt from RPM, though actual frame time would be better
+            if (dt <= 0 || dt > 1.0f) dt = 0.1f; // fallback
+            
+            object_tracker_.setClusterDistance(state_.track_cluster_dist);
+            object_tracker_.setPersonSizeBounds(state_.track_min_size, state_.track_max_size);
+            object_tracker_.process(filtered_points, dt, state_.tracked_objects);
+        } else {
+            state_.tracked_objects.clear();
         }
 
         state_.point_count = filtered_points.size();

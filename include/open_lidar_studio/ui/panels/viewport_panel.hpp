@@ -24,6 +24,8 @@ private:
                    float pixels_per_meter, UIState& state, float dt);
     void drawMeasureTool(ImDrawList* dl, const ImVec2& center,
                          float pixels_per_meter, UIState& state, bool hovered);
+    void drawTrackedObjects(ImDrawList* dl, const ImVec2& center,
+                            float pixels_per_meter, const UIState& state);
     void handleZoomPan(UIState& state, const ImVec2& size,
                        float pixels_per_meter, float effective_range);
     void takeScreenshot(rendering::GLRenderer& renderer, const std::string& filename);

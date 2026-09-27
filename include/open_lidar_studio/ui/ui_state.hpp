@@ -8,12 +8,23 @@
 
 namespace ols::ui {
 
+struct TrackedObject {
+    int id;
+    float center_x;
+    float center_y;
+    float radius;
+    float velocity_x;
+    float velocity_y;
+    int missing_frames;
+};
+
 struct ZoneAlert {
     bool   enabled{false};
     float  min_radius{0.0f};
     float  max_radius{1.0f};
     float  min_angle_deg{0.0f};
     float  max_angle_deg{360.0f};
+    bool   play_sound{false};
     bool   triggered{false};
     float  trigger_flash{0.0f}; // countdown timer for red flash
 };
@@ -87,6 +98,13 @@ struct UIState {
     bool is_logging{false};
     std::string log_filename{"lidar_capture"};
     float log_duration{0.0f};
+
+    // ── Person Tracking ───────────────────────────────────────────────
+    bool enable_person_tracking{false};
+    float track_cluster_dist{0.2f};
+    float track_min_size{0.2f};
+    float track_max_size{0.8f};
+    std::vector<TrackedObject> tracked_objects;
 };
 
 } // namespace ols::ui

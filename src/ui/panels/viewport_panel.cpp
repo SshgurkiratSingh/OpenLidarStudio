@@ -366,6 +366,9 @@ void ViewportPanel::drawOverlay(UIState& state, const ImVec2& pos, const ImVec2&
     // Zone alerts
     drawZones(dl, center, ppm, state, dt);
 
+    // Tracked Objects
+    drawTrackedObjects(dl, center, ppm, state);
+
     // Measure tool
     bool hovered = ImGui::IsItemHovered();
     drawMeasureTool(dl, center, ppm, state, hovered);
@@ -413,6 +416,36 @@ void ViewportPanel::drawOverlay(UIState& state, const ImVec2& pos, const ImVec2&
                     IM_COL32(0, 220, 255, 240), "MEASURE MODE —");
         dl->AddText(ImVec2(pos.x + 130, pos.y + 8),
                     IM_COL32(180, 240, 255, 200), hint);
+    }
+}
+
+// ─── Person Tracking Overlay ──────────────────────────────────────────────────
+
+void ViewportPanel::drawTrackedObjects(ImDrawList* dl, const ImVec2& center,
+                                       float ppm, const UIState& state) {
+    if (!state.enable_person_tracking) return;
+
+    for (const auto& obj : state.tracked_objects) {
+        ImVec2 screen_pos(center.x + obj.center_x * ppm, center.y - obj.center_y * ppm);
+        float radius_px = obj.radius * ppm;
+        
+        // Draw bounding box/circle
+        ImU32 color = IM_COL32(50, 255, 50, 200);
+        if (obj.missing_frames > 0) {
+            color = IM_COL32(200, 200, 50, 150); // Yellowish and more transparent if missing
+        }
+        dl->AddCircle(screen_pos, radius_px, color, 32, 2.0f);
+        
+        // Velocity vector
+        if (std::abs(obj.velocity_x) > 0.01f || std::abs(obj.velocity_y) > 0.01f) {
+            ImVec2 vel_end(screen_pos.x + (obj.center_x + obj.velocity_x) * ppm, screen_pos.y - (obj.center_y + obj.velocity_y) * ppm);
+            dl->AddLine(screen_pos, vel_end, IM_COL32(50, 255, 50, 150), 2.0f);
+        }
+        
+        // Label
+        char lbl[32];
+        std::snprintf(lbl, sizeof(lbl), "ID %d", obj.id);
+        dl->AddText(ImVec2(screen_pos.x + radius_px + 5, screen_pos.y - radius_px - 5), color, lbl);
     }
 }
 

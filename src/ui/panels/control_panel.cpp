@@ -175,6 +175,7 @@ void ControlPanel::render(UIState& state, hardware::LidarController& controller,
                 auto& z = state.zones[i];
                 ImGui::Checkbox("Enabled", &z.enabled);
                 if (z.enabled) {
+                    ImGui::Checkbox("Audio Alert", &z.play_sound);
                     ImGui::SliderFloat("Min Radius##z", &z.min_radius, 0.0f, 10.0f);
                     ImGui::SliderFloat("Max Radius##z", &z.max_radius, 0.1f, 20.0f);
                     ImGui::SliderFloat("Min Angle##z", &z.min_angle_deg, 0.0f, 360.0f);
@@ -187,6 +188,17 @@ void ControlPanel::render(UIState& state, hardware::LidarController& controller,
                 }
                 ImGui::TreePop();
             }
+        }
+    }
+
+    // Person Tracking
+    if (ImGui::CollapsingHeader("Person Tracking")) {
+        ImGui::Checkbox("Enable Person Tracking", &state.enable_person_tracking);
+        if (state.enable_person_tracking) {
+            ImGui::SliderFloat("Cluster Distance (m)", &state.track_cluster_dist, 0.05f, 1.0f);
+            ImGui::SliderFloat("Min Size (m)", &state.track_min_size, 0.05f, 1.0f);
+            ImGui::SliderFloat("Max Size (m)", &state.track_max_size, 0.2f, 2.0f);
+            ImGui::Text("Tracking %zu objects", state.tracked_objects.size());
         }
     }
     
