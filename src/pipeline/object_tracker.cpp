@@ -105,6 +105,8 @@ void ObjectTracker::process(const std::vector<LaserPoint>& points, float dt, std
             obj.missing_frames = 0;
             obj.hit_count = 0;
             obj.is_confirmed = false;
+            obj.initial_x = obj.center_x;
+            obj.initial_y = obj.center_y;
             current_frame_objects.push_back(obj);
         }
     }
@@ -128,8 +130,11 @@ void ObjectTracker::process(const std::vector<LaserPoint>& points, float dt, std
             float dy = current_frame_objects[j].center_y - pred_y;
             float dist_sq = dx*dx + dy*dy;
             
-            // Allow matching within 1.0 meter (could be tuned)
-            if (dist_sq < min_dist_sq && dist_sq < 1.0f) {
+            float max_dist = 2.0f * dt; // 2 m/s max human speed
+            if (max_dist < 0.2f) max_dist = 0.2f; // Minimum 20cm search radius for jitter
+            float max_dist_sq = max_dist * max_dist;
+            
+            if (dist_sq < min_dist_sq && dist_sq < max_dist_sq) {
                 min_dist_sq = dist_sq;
                 best_match = j;
             }
@@ -140,10 +145,17 @@ void ObjectTracker::process(const std::vector<LaserPoint>& points, float dt, std
             auto& obs = current_frame_objects[best_match];
             obs.id = track.id; // Assign existing ID
             obs.hit_count = track.hit_count + 1;
-            if (obs.hit_count >= min_hits_) {
-                obs.is_confirmed = true;
-            } else {
-                obs.is_confirmed = false;
+            obs.initial_x = track.initial_x;
+            obs.initial_y = track.initial_y;
+            
+            obs.is_confirmed = track.is_confirmed;
+            if (!obs.is_confirmed) {
+                float dx_init = obs.center_x - obs.initial_x;
+                float dy_init = obs.center_y - obs.initial_y;
+                // Require min hits AND at least 10cm movement from initial position (reject static walls)
+                if (obs.hit_count >= min_hits_ && (dx_init*dx_init + dy_init*dy_init > 0.01f)) {
+                    obs.is_confirmed = true;
+                }
             }
             
             // Update velocity

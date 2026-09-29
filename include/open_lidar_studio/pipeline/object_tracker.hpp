@@ -21,7 +21,7 @@ public:
 
 private:
     float cluster_dist_{0.2f};
-    float min_size_{0.2f};
+    float min_size_{0.1f};
     float max_size_{0.8f};
     int max_missing_frames_{10};
     int min_hits_{3};

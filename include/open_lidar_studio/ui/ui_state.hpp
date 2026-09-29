@@ -18,6 +18,8 @@ struct TrackedObject {
     int missing_frames;
     int hit_count{0};
     bool is_confirmed{false};
+    float initial_x{0.0f};
+    float initial_y{0.0f};
 };
 
 struct ZoneAlert {
@@ -104,7 +106,7 @@ struct UIState {
     // ── Person Tracking ───────────────────────────────────────────────
     bool enable_person_tracking{false};
     float track_cluster_dist{0.2f};
-    float track_min_size{0.2f};
+    float track_min_size{0.1f};
     float track_max_size{0.8f};
     int track_min_hits{3};
     std::vector<TrackedObject> tracked_objects;
