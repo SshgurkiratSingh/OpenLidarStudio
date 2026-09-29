@@ -198,6 +198,7 @@ void AppWindow::processScanData() {
             
             object_tracker_.setClusterDistance(state_.track_cluster_dist);
             object_tracker_.setPersonSizeBounds(state_.track_min_size, state_.track_max_size);
+            object_tracker_.setMinHits(state_.track_min_hits);
             object_tracker_.process(filtered_points, dt, state_.tracked_objects);
         } else {
             state_.tracked_objects.clear();

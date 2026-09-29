@@ -16,6 +16,8 @@ struct TrackedObject {
     float velocity_x;
     float velocity_y;
     int missing_frames;
+    int hit_count{0};
+    bool is_confirmed{false};
 };
 
 struct ZoneAlert {
@@ -104,6 +106,7 @@ struct UIState {
     float track_cluster_dist{0.2f};
     float track_min_size{0.2f};
     float track_max_size{0.8f};
+    int track_min_hits{3};
     std::vector<TrackedObject> tracked_objects;
 };
 

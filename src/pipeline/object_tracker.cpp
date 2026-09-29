@@ -20,6 +20,7 @@ void ObjectTracker::setPersonSizeBounds(float min_size, float max_size) {
     max_size_ = max_size;
 }
 void ObjectTracker::setMaxMissingFrames(int frames) { max_missing_frames_ = frames; }
+void ObjectTracker::setMinHits(int hits) { min_hits_ = hits; }
 
 void ObjectTracker::process(const std::vector<LaserPoint>& points, float dt, std::vector<ui::TrackedObject>& out_tracks) {
     // 1. Convert to cartesian for clustering
@@ -102,6 +103,8 @@ void ObjectTracker::process(const std::vector<LaserPoint>& points, float dt, std
             obj.velocity_x = 0;
             obj.velocity_y = 0;
             obj.missing_frames = 0;
+            obj.hit_count = 0;
+            obj.is_confirmed = false;
             current_frame_objects.push_back(obj);
         }
     }
@@ -136,6 +139,12 @@ void ObjectTracker::process(const std::vector<LaserPoint>& points, float dt, std
             // Found a match
             auto& obs = current_frame_objects[best_match];
             obs.id = track.id; // Assign existing ID
+            obs.hit_count = track.hit_count + 1;
+            if (obs.hit_count >= min_hits_) {
+                obs.is_confirmed = true;
+            } else {
+                obs.is_confirmed = false;
+            }
             
             // Update velocity
             if (dt > 0.0f) {
@@ -164,12 +173,19 @@ void ObjectTracker::process(const std::vector<LaserPoint>& points, float dt, std
         if (obs.id == -1) {
             auto new_track = obs;
             new_track.id = next_id_++;
+            new_track.hit_count = 1;
+            new_track.is_confirmed = (min_hits_ <= 1);
             next_tracks.push_back(new_track);
         }
     }
 
     current_tracks_ = next_tracks;
-    out_tracks = current_tracks_;
+    out_tracks.clear();
+    for (const auto& t : current_tracks_) {
+        if (t.is_confirmed) {
+            out_tracks.push_back(t);
+        }
+    }
 }
 
 } // namespace ols::pipeline

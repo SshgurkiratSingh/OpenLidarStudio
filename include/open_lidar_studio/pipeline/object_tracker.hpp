@@ -14,6 +14,7 @@ public:
     void setClusterDistance(float dist);
     void setPersonSizeBounds(float min_size, float max_size);
     void setMaxMissingFrames(int frames);
+    void setMinHits(int hits);
 
     // Process a frame of points and update tracked objects
     void process(const std::vector<LaserPoint>& points, float dt, std::vector<ui::TrackedObject>& out_tracks);
@@ -23,6 +24,7 @@ private:
     float min_size_{0.2f};
     float max_size_{0.8f};
     int max_missing_frames_{10};
+    int min_hits_{3};
     int next_id_{1};
 
     std::vector<ui::TrackedObject> current_tracks_;

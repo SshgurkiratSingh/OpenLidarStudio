@@ -198,6 +198,7 @@ void ControlPanel::render(UIState& state, hardware::LidarController& controller,
             ImGui::SliderFloat("Cluster Distance (m)", &state.track_cluster_dist, 0.05f, 1.0f);
             ImGui::SliderFloat("Min Size (m)", &state.track_min_size, 0.05f, 1.0f);
             ImGui::SliderFloat("Max Size (m)", &state.track_max_size, 0.2f, 2.0f);
+            ImGui::SliderInt("Min Hits (Frames)", &state.track_min_hits, 1, 30);
             ImGui::Text("Tracking %zu objects", state.tracked_objects.size());
         }
     }
