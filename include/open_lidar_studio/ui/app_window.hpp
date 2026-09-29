@@ -57,6 +57,7 @@ private:
     // Concurrency between lidar thread and UI thread
     std::mutex scan_mutex_;
     std::vector<LaserPoint> latest_scan_;
+    float latest_rpm_{0.0f};
     bool new_scan_available_{false};
     
     std::deque<std::vector<core::SerializedPoint>> history_frames_;

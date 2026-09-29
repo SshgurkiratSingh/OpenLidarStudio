@@ -83,6 +83,16 @@ bool AppWindow::initialize() {
     lidar_controller_.setScanCallback([this](const LaserScan& scan) {
         std::lock_guard<std::mutex> lock(scan_mutex_);
         latest_scan_ = scan.points;
+        
+        static uint64_t last_stamp = 0;
+        if (last_stamp != 0 && scan.stamp > last_stamp) {
+            float dt_sec = (scan.stamp - last_stamp) / 1e9f;
+            if (dt_sec > 0.02f && dt_sec < 2.0f) {
+                latest_rpm_ = 60.0f / dt_sec;
+            }
+        }
+        last_stamp = scan.stamp;
+        
         new_scan_available_ = true;
     });
 
@@ -128,8 +138,8 @@ void AppWindow::setupDockspace() {
         ImGui::DockBuilderDockWindow("Control & Toolbar",    dock_left_top);
         ImGui::DockBuilderDockWindow("Logging & Playback",   dock_left_bottom);
         ImGui::DockBuilderDockWindow("Telemetry & Analytics",dock_right);
-        ImGui::DockBuilderDockWindow("Viewport",             dock_center);
-        ImGui::DockBuilderDockWindow("Replay",               dock_center); // tabs with Viewport
+        ImGui::DockBuilderDockWindow("Replay",               dock_center);
+        ImGui::DockBuilderDockWindow("Viewport",             dock_center); // Viewport added last makes it active
         
         ImGui::DockBuilderFinish(dockspace_id);
     }
@@ -145,6 +155,7 @@ void AppWindow::processScanData() {
         std::lock_guard<std::mutex> lock(scan_mutex_);
         if (new_scan_available_) {
             current_points = latest_scan_;
+            state_.current_rpm = latest_rpm_;
             new_scan_available_ = false;
         }
     }
