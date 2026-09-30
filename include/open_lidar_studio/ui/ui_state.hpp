@@ -33,6 +33,19 @@ struct ZoneAlert {
     float  trigger_flash{0.0f}; // countdown timer for red flash
 };
 
+struct VirtualWall {
+    bool enabled{false};
+    bool define_mode{false};
+    bool define_point_a_set{false};
+    bool define_point_b_set{false};
+    float ax{0.0f}, ay{0.0f}; // world-space metres
+    float bx{0.0f}, by{0.0f};
+    int led_count{300};
+    bool invert_leds{false};
+    int idle_animation{1}; // 0 = None, 1 = Rainbow, 2 = Breathe
+    bool bypass_lidar{false};
+};
+
 struct UIState {
     // ── Connection ───────────────────────────────────────────────────
     std::string selected_port{"/dev/ttyUSB0"};
@@ -110,6 +123,11 @@ struct UIState {
     float track_max_size{0.8f};
     int track_min_hits{3};
     std::vector<TrackedObject> tracked_objects;
+
+    // ── Addressable LED Wall ──────────────────────────────────────────
+    VirtualWall led_wall;
+    std::string discovered_node_ip{""};
+    std::string udp_status_message{"Not connected"};
 };
 
 } // namespace ols::ui

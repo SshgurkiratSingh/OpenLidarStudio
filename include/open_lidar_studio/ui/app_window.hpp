@@ -12,6 +12,8 @@
 #include <open_lidar_studio/pipeline/auto_ranger.hpp>
 #include <open_lidar_studio/pipeline/async_logger.hpp>
 #include <open_lidar_studio/pipeline/object_tracker.hpp>
+#include <open_lidar_studio/pipeline/wall_mapper.hpp>
+#include <open_lidar_studio/hardware/led_publisher.hpp>
 #include <open_lidar_studio/rendering/gl_renderer.hpp>
 #include <open_lidar_studio/core/audio_manager.hpp>
 
@@ -51,6 +53,8 @@ private:
     pipeline::AutoRanger auto_ranger_;
     pipeline::AsyncLogger async_logger_;
     pipeline::ObjectTracker object_tracker_;
+    pipeline::WallMapper wall_mapper_;
+    hardware::LedPublisher led_publisher_;
     rendering::GLRenderer gl_renderer_;
     core::AudioManager audio_manager_;
     

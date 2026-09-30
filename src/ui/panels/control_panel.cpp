@@ -202,6 +202,33 @@ void ControlPanel::render(UIState& state, hardware::LidarController& controller,
             ImGui::Text("Tracking %zu objects", state.tracked_objects.size());
         }
     }
+
+    // Addressable LED Wall
+    if (ImGui::CollapsingHeader("Addressable LED Wall")) {
+        ImGui::Checkbox("Enable LED Wall", &state.led_wall.enabled);
+        if (state.led_wall.enabled) {
+            ImGui::Checkbox("Bypass LiDAR (Anim Only)", &state.led_wall.bypass_lidar);
+            ImGui::Checkbox("Define Wall Mode", &state.led_wall.define_mode);
+            if (ImGui::Button("Reset Wall Definition")) {
+                state.led_wall.define_point_a_set = false;
+                state.led_wall.define_point_b_set = false;
+            }
+            ImGui::Separator();
+            ImGui::InputInt("LED Count", &state.led_wall.led_count);
+            if (state.led_wall.led_count < 1) state.led_wall.led_count = 1;
+            ImGui::Checkbox("Invert LED Order", &state.led_wall.invert_leds);
+            
+            const char* anim_items[] = { 
+                "None", "Rainbow", "Breathe", "Theater Chase", "Sparkle", "Scanner", 
+                "Fire", "Meteor Rain", "Cyberpunk Pulse", "Lava", "Bioluminescence" 
+            };
+            ImGui::Combo("Idle Animation", &state.led_wall.idle_animation, anim_items, 11);
+            
+            ImGui::Separator();
+            ImGui::Text("UDP Node IP: %s", state.discovered_node_ip.empty() ? "None" : state.discovered_node_ip.c_str());
+            ImGui::Text("Status: %s", state.udp_status_message.c_str());
+        }
+    }
     
     // Auto-Ranger & Display
     if (ImGui::CollapsingHeader("Auto-Ranger & Display")) {

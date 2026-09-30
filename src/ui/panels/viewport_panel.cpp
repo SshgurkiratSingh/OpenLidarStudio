@@ -315,6 +315,69 @@ void ViewportPanel::drawMeasureTool(ImDrawList* dl, const ImVec2& center,
     }
 }
 
+void ViewportPanel::drawLedWallTool(ImDrawList* dl, const ImVec2& center,
+                                    float ppm, UIState& state, bool hovered) {
+    if (!state.led_wall.enabled) return;
+
+    ImU32 col_pt  = IM_COL32(255, 0, 200, 220); // Pinkish for LEDs
+    ImU32 col_ln  = IM_COL32(255, 0, 200, 160);
+
+    auto world_to_screen = [&](float wx, float wy) -> ImVec2 {
+        return ImVec2(center.x + wx * ppm, center.y - wy * ppm);
+    };
+    auto screen_to_world = [&](ImVec2 sp) -> std::pair<float,float> {
+        return {(sp.x - center.x) / ppm, (center.y - sp.y) / ppm};
+    };
+
+    if (state.led_wall.define_mode && hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+        ImVec2 mp = ImGui::GetMousePos();
+        auto [wx, wy] = screen_to_world(mp);
+        if (!state.led_wall.define_point_a_set) {
+            state.led_wall.ax = wx; state.led_wall.ay = wy;
+            state.led_wall.define_point_a_set = true;
+            state.led_wall.define_point_b_set = false;
+        } else {
+            state.led_wall.bx = wx; state.led_wall.by = wy;
+            state.led_wall.define_point_b_set = true;
+            state.led_wall.define_mode = false; // Auto exit mode
+        }
+    }
+
+    if (state.led_wall.define_point_a_set) {
+        ImVec2 sa = world_to_screen(state.led_wall.ax, state.led_wall.ay);
+        dl->AddCircleFilled(sa, 5.0f, col_pt);
+        dl->AddText(ImVec2(sa.x + 7, sa.y - 14), col_pt, "LED Wall 0");
+    }
+
+    if (state.led_wall.define_point_a_set) {
+        ImVec2 sa = world_to_screen(state.led_wall.ax, state.led_wall.ay);
+        ImVec2 end_pt;
+        if (state.led_wall.define_point_b_set) {
+            end_pt = world_to_screen(state.led_wall.bx, state.led_wall.by);
+        } else if (state.led_wall.define_mode && hovered) {
+            end_pt = ImGui::GetMousePos();
+        } else {
+            end_pt = sa;
+        }
+
+        if (state.led_wall.define_point_b_set || (state.led_wall.define_mode && hovered)) {
+            // Draw a thicker line to represent the LED strip
+            dl->AddLine(sa, end_pt, col_ln, 4.0f);
+        }
+
+        if (state.led_wall.define_point_b_set) {
+            ImVec2 sb = world_to_screen(state.led_wall.bx, state.led_wall.by);
+            dl->AddCircleFilled(sb, 5.0f, col_pt);
+            dl->AddText(ImVec2(sb.x + 7, sb.y - 14), col_pt, "LED Wall N");
+        }
+    }
+
+    if (state.led_wall.define_mode && hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+        state.led_wall.define_point_a_set = false;
+        state.led_wall.define_point_b_set = false;
+    }
+}
+
 // ─── Overlay (rings, grid, crosshair, hover, zones, measure) ─────────────────
 
 void ViewportPanel::drawOverlay(UIState& state, const ImVec2& pos, const ImVec2& size,
@@ -372,6 +435,7 @@ void ViewportPanel::drawOverlay(UIState& state, const ImVec2& pos, const ImVec2&
     // Measure tool
     bool hovered = ImGui::IsItemHovered();
     drawMeasureTool(dl, center, ppm, state, hovered);
+    drawLedWallTool(dl, center, ppm, state, hovered);
 
     // Hover tooltip (only when not in measure mode)
     if (!state.measure_mode && hovered) {
@@ -416,6 +480,15 @@ void ViewportPanel::drawOverlay(UIState& state, const ImVec2& pos, const ImVec2&
                     IM_COL32(0, 220, 255, 240), "MEASURE MODE —");
         dl->AddText(ImVec2(pos.x + 130, pos.y + 8),
                     IM_COL32(180, 240, 255, 200), hint);
+    } else if (state.led_wall.define_mode) {
+        const char* hint = state.led_wall.define_point_a_set ? "Click B to finish" : "Click A to start";
+        dl->AddRectFilled(ImVec2(pos.x + 6, pos.y + 6),
+                          ImVec2(pos.x + 300, pos.y + 22),
+                          IM_COL32(40, 0, 40, 200), 4.0f);
+        dl->AddText(ImVec2(pos.x + 10, pos.y + 8),
+                    IM_COL32(255, 50, 200, 240), "DEFINE WALL MODE —");
+        dl->AddText(ImVec2(pos.x + 150, pos.y + 8),
+                    IM_COL32(255, 150, 200, 200), hint);
     }
 }
 

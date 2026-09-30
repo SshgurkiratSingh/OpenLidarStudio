@@ -15,6 +15,7 @@ AppWindow::AppWindow(int width, int height, const char* title)
 }
 
 AppWindow::~AppWindow() {
+    led_publisher_.stop();
     lidar_controller_.disconnect();
     
     ImPlot::DestroyContext();
@@ -95,6 +96,9 @@ bool AppWindow::initialize() {
         
         new_scan_available_ = true;
     });
+    
+    // Start LED Publisher background threads
+    led_publisher_.start();
 
     return true;
 }
@@ -214,6 +218,18 @@ void AppWindow::processScanData() {
         } else {
             state_.tracked_objects.clear();
         }
+        
+        // Addressable LED Wall Mapping & Publishing
+        float wall_dt = 1.0f / 60.0f; // Approximate for UI rate
+        if (state_.current_rpm > 10.0f) {
+            wall_dt = (1.0f / state_.current_rpm) * 60.0f;
+        }
+        wall_mapper_.process(state_, filtered_points, wall_dt);
+        if (state_.led_wall.enabled) {
+            led_publisher_.setRGBBuffer(wall_mapper_.getRGBBuffer());
+        }
+        state_.discovered_node_ip = led_publisher_.getDiscoveredIP();
+        state_.udp_status_message = led_publisher_.getStatusMessage();
 
         state_.point_count = filtered_points.size();
         state_.r_inst = auto_ranger_.getInstRange();
