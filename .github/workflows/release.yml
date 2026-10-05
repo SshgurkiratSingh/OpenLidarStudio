@@ -94,10 +94,49 @@ jobs:
           retention-days: 1
 
   # ─────────────────────────────────────────────
+  # macOS build (macOS Latest, Apple Clang)
+  # ─────────────────────────────────────────────
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: brew install cmake ninja
+
+      - name: Configure CMake (Release)
+        run: |
+          cmake -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -G Ninja
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Package
+        run: |
+          mkdir -p dist/OpenLidarStudio-macOS
+          cp build/OpenLidarStudio dist/OpenLidarStudio-macOS/
+          cp -r assets               dist/OpenLidarStudio-macOS/
+          cp README.md               dist/OpenLidarStudio-macOS/
+          cp -r docs                 dist/OpenLidarStudio-macOS/
+          cd dist
+          tar -czvf ../OpenLidarStudio-macOS-${{ github.ref_name }}.tar.gz OpenLidarStudio-macOS/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-build
+          path: OpenLidarStudio-macOS-${{ github.ref_name }}.tar.gz
+          retention-days: 1
+
+  # ─────────────────────────────────────────────
   # GitHub Release — attaches both packages
   # ─────────────────────────────────────────────
   create-release:
-    needs: [build-linux, build-windows]
+    needs: [build-linux, build-windows, build-macos]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -118,6 +157,7 @@ jobs:
           sha256sum \
             OpenLidarStudio-Linux-${{ github.ref_name }}.tar.gz \
             OpenLidarStudio-Windows-${{ github.ref_name }}.zip \
+            OpenLidarStudio-macOS-${{ github.ref_name }}.tar.gz \
             > SHA256SUMS.txt
           cat SHA256SUMS.txt
 
@@ -141,6 +181,13 @@ jobs:
             **Windows**
             Unzip `OpenLidarStudio-Windows-${{ github.ref_name }}.zip` and run `OpenLidarStudio.exe`.
 
+            **macOS**
+            ```bash
+            tar -xzvf OpenLidarStudio-macOS-${{ github.ref_name }}.tar.gz
+            cd OpenLidarStudio-macOS
+            ./OpenLidarStudio
+            ```
+
             ### Supported Hardware
             | Model | Baudrate | Single-Channel |
             |---|---|---|
@@ -159,6 +206,7 @@ jobs:
           files: |
             release-assets/OpenLidarStudio-Linux-${{ github.ref_name }}.tar.gz
             release-assets/OpenLidarStudio-Windows-${{ github.ref_name }}.zip
+            release-assets/OpenLidarStudio-macOS-${{ github.ref_name }}.tar.gz
             release-assets/SHA256SUMS.txt
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
