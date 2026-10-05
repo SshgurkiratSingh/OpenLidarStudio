@@ -2,18 +2,33 @@
 #include <iostream>
 #include <chrono>
 #include <cstring>
+#ifdef _WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#pragma comment(lib, "ws2_32.lib")
+using socklen_t = int;
+#else
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <fcntl.h>
+#endif
 
 namespace ols::hardware {
 
-LedPublisher::LedPublisher() {}
+LedPublisher::LedPublisher() {
+#ifdef _WIN32
+    WSADATA wsaData;
+    WSAStartup(MAKEWORD(2, 2), &wsaData);
+#endif
+}
 
 LedPublisher::~LedPublisher() {
     stop();
+#ifdef _WIN32
+    WSACleanup();
+#endif
 }
 
 void LedPublisher::start() {
@@ -55,12 +70,17 @@ void LedPublisher::discoveryLoop() {
     if (sock < 0) return;
     
     int opt = 1;
+#ifdef _WIN32
+    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char*)&opt, sizeof(opt));
+    DWORD timeout = 1000;
+    setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout, sizeof(timeout));
+#else
     setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
-    
     struct timeval tv;
     tv.tv_sec = 1; // 1 second timeout
     tv.tv_usec = 0;
     setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+#endif
     
     struct sockaddr_in server_addr;
     memset(&server_addr, 0, sizeof(server_addr));
@@ -70,7 +90,11 @@ void LedPublisher::discoveryLoop() {
     
     if (bind(sock, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
         std::cerr << "LedPublisher: Failed to bind discovery socket" << std::endl;
+#ifdef _WIN32
+        closesocket(sock);
+#else
         close(sock);
+#endif
         return;
     }
     
@@ -94,7 +118,11 @@ void LedPublisher::discoveryLoop() {
         }
     }
     
+#ifdef _WIN32
+    closesocket(sock);
+#else
     close(sock);
+#endif
 }
 
 void LedPublisher::streamLoop() {
@@ -129,7 +157,11 @@ void LedPublisher::streamLoop() {
         std::this_thread::sleep_for(std::chrono::milliseconds(16)); // ~60 Hz
     }
     
+#ifdef _WIN32
+    closesocket(sock);
+#else
     close(sock);
+#endif
 }
 
 } // namespace ols::hardware

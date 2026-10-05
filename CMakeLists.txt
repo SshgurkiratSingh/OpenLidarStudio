@@ -22,6 +22,7 @@ if(MSVC)
     add_compile_definitions(
         _CRT_SECURE_NO_WARNINGS
         _WINSOCK_DEPRECATED_NO_WARNINGS
+        NOMINMAX
     )
 else()
     add_compile_options(-Wall -Wextra -Wpedantic -O3 -march=native

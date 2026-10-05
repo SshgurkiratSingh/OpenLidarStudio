@@ -157,7 +157,7 @@ void WallMapper::applyIdleAnimation(const ui::UIState& state) {
         for (int i = 0; i < num_leds; ++i) {
             blendLED(i, 10, 0, 20, 1.0f); // dim purple background
         }
-        int sparkles = std::max(1, num_leds / 20);
+        int sparkles = (std::max)(1, num_leds / 20);
         for (int i = 0; i < sparkles; ++i) {
             if (std::rand() % 10 == 0) { // randomness threshold
                 int idx = std::rand() % num_leds;
@@ -169,7 +169,7 @@ void WallMapper::applyIdleAnimation(const ui::UIState& state) {
         for (int i = 0; i < num_leds; ++i) {
             blendLED(i, 0, 0, 0, 1.0f); // clear background
         }
-        int glow_size = std::max(2, num_leds / 10);
+        int glow_size = (std::max)(2, num_leds / 10);
         for (int i = -glow_size; i <= glow_size; ++i) {
             int idx = static_cast<int>(pos) + i;
             if (idx >= 0 && idx < num_leds) {
@@ -184,7 +184,7 @@ void WallMapper::applyIdleAnimation(const ui::UIState& state) {
         // Cool down every cell
         for (int i = 0; i < num_leds; i++) {
             float cooldown = static_cast<float>(std::rand() % 100) / 100.0f * 0.1f;
-            heat[i] = std::max(0.0f, heat[i] - cooldown);
+            heat[i] = (std::max)(0.0f, heat[i] - cooldown);
         }
         
         // Heat from each cell drifts 'up' (to higher indices)
@@ -194,9 +194,9 @@ void WallMapper::applyIdleAnimation(const ui::UIState& state) {
         
         // Randomly ignite sparks near the bottom
         if (std::rand() % 10 < 5) {
-            int y = std::rand() % std::max(2, num_leds / 10);
+            int y = std::rand() % (std::max)(2, num_leds / 10);
             heat[y] = heat[y] + static_cast<float>(std::rand() % 100) / 100.0f * 0.5f + 0.5f;
-            heat[y] = std::min(1.0f, heat[y]);
+            heat[y] = (std::min)(1.0f, heat[y]);
         }
         
         // Map heat to color (0=black, 0.5=red, 0.8=yellow, 1.0=white)
