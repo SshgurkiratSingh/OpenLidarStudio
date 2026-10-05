@@ -100,6 +100,14 @@ bool AppWindow::initialize() {
     // Start LED Publisher background threads
     led_publisher_.start();
 
+    // Initialize Plugin System
+    plugin_context_.state = &state_;
+    plugin_context_.raw_points = &latest_scan_;
+    plugin_context_.renderer = &gl_renderer_;
+    plugin_context_.lidar = &lidar_controller_;
+    plugin_context_.audio = &audio_manager_;
+    plugin_manager_.loadPlugins("plugins", &plugin_context_);
+
     return true;
 }
 
@@ -297,6 +305,8 @@ void AppWindow::processScanData() {
         state_.log_duration += delta_time;
     }
     
+    plugin_manager_.updateAll(delta_time);
+    
     // Decimate history updates to e.g. 10 Hz
     static float history_timer = 0.0f;
     history_timer += delta_time;
@@ -330,6 +340,8 @@ void AppWindow::renderUI() {
     logging_panel_.render(state_, async_logger_);
     viewport_panel_.render(state_, gl_renderer_);
     replay_panel_.render(state_, gl_renderer_);
+
+    plugin_manager_.renderUIAll();
 
     ImGui::Render();
 }

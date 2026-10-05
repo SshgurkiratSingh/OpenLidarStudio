@@ -16,6 +16,7 @@
 #include <open_lidar_studio/hardware/led_publisher.hpp>
 #include <open_lidar_studio/rendering/gl_renderer.hpp>
 #include <open_lidar_studio/core/audio_manager.hpp>
+#include <open_lidar_studio/plugin/plugin_manager.hpp>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -57,6 +58,8 @@ private:
     hardware::LedPublisher led_publisher_;
     rendering::GLRenderer gl_renderer_;
     core::AudioManager audio_manager_;
+    plugin::PluginManager plugin_manager_;
+    plugin::PluginContext plugin_context_;
     
     // Concurrency between lidar thread and UI thread
     std::mutex scan_mutex_;
