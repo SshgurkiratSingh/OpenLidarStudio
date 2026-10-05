@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(OpenLidarStudio VERSION 1.5.4 LANGUAGES C CXX)
+project(OpenLidarStudio VERSION 1.5.5 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -25,8 +25,10 @@ if(MSVC)
         NOMINMAX
     )
 else()
-    add_compile_options(-Wall -Wextra -Wpedantic -O3 -march=native
-        -Wno-interference-size)
+    add_compile_options(-Wall -Wextra -Wpedantic -O3)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+        add_compile_options(-Wno-interference-size)
+    endif()
 endif()
 
 # Embedded YDLIDAR SDK Integration
