@@ -105,6 +105,9 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Apply ydlidar_sdk macOS patch
+        run: cd 3rdparty/ydlidar_sdk && git apply ../../patches/ydlidar_sdk.patch
+
       - name: Install dependencies
         run: brew install cmake ninja
 

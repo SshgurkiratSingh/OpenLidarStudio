@@ -1,0 +1,110 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index b9ab71a..6c528d6 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -21,8 +21,10 @@ FILE(GLOB SDK_SRC
+   "src/impl/unix/*.cpp"
+   "src/impl/unix/*.h"
+ )
+-
+-	
++IF(APPLE)
++  FILE(GLOB MAC_SRC "src/impl/list_ports/list_ports_osx.cpp")
++  LIST(APPEND SDK_SRC ${MAC_SRC})
++ENDIF()
+ ENDIF()
+ 
+ add_subdirectory(samples)
+@@ -30,6 +32,10 @@ add_subdirectory(samples)
+ add_library(ydlidar_driver STATIC ${SDK_SRC})
+ IF (WIN32)
+ target_link_libraries(ydlidar_driver setupapi Winmm)
++ELSEIF (APPLE)
++find_library(IOKIT_LIBRARY IOKit)
++find_library(COREFOUNDATION_LIBRARY CoreFoundation)
++target_link_libraries(ydlidar_driver pthread ${IOKIT_LIBRARY} ${COREFOUNDATION_LIBRARY})
+ ELSE()
+ target_link_libraries(ydlidar_driver rt pthread)
+ ENDIF()                    
+diff --git a/include/locker.h b/include/locker.h
+index 3b05bf3..823cc00 100644
+--- a/include/locker.h
++++ b/include/locker.h
+@@ -89,7 +89,7 @@ class Locker {
+         wait_time.tv_nsec -= 1000000000;
+       }
+ 
+-#if !defined(__ANDROID__)
++#if !defined(__ANDROID__) && !defined(__APPLE__)
+ 
+       switch (pthread_mutex_timedlock(&_lock, &wait_time)) {
+         case 0:
+@@ -209,7 +209,9 @@ class Event {
+       fflush(stderr);
+     }
+ 
++#if !defined(__APPLE__)
+     ret = pthread_condattr_setclock(&_cond_cattr, CLOCK_MONOTONIC);
++#endif
+     pthread_mutex_init(&_cond_locker, NULL);
+     ret =  pthread_cond_init(&_cond_var, &_cond_cattr);
+ #endif
+@@ -269,7 +271,11 @@ class Event {
+         pthread_cond_wait(&_cond_var, &_cond_locker);
+       } else {
+         struct timespec wait_time;
++#if defined(__APPLE__)
++        clock_gettime(CLOCK_REALTIME, &wait_time);
++#else
+         clock_gettime(CLOCK_MONOTONIC, &wait_time);
++#endif
+ 
+ 
+         wait_time.tv_sec += timeout / 1000;
+diff --git a/src/impl/unix/unix_serial.cpp b/src/impl/unix/unix_serial.cpp
+index 0b8fe75..9b15f6a 100644
+--- a/src/impl/unix/unix_serial.cpp
++++ b/src/impl/unix/unix_serial.cpp
+@@ -19,7 +19,9 @@
+ #include <poll.h>
+ #include <sys/utsname.h>
+ 
++#if defined(__linux__)
+ #include <asm/ioctls.h>
++#endif
+ 
+ #if defined(__linux__) &&!defined(__ANDROID__)
+ # include <linux/serial.h>
+@@ -654,7 +656,7 @@ Serial::SerialImpl::~SerialImpl() {
+   pthread_mutex_destroy(&this->write_mutex);
+ }
+ 
+-bool Serial::SerialImpl::open() {
++bool Serial::SerialImpl::open() { printf("Entering open\n");
+   if (port_.empty()) {
+     return false;
+   }
+diff --git a/src/serial.cpp b/src/serial.cpp
+index e363e4c..021a8af 100644
+--- a/src/serial.cpp
++++ b/src/serial.cpp
+@@ -62,6 +62,11 @@ Serial::Serial(const string &port, uint32_t baudrate, serial::Timeout timeout,
+   : pimpl_(new SerialImpl(port, baudrate, bytesize, parity,
+                           stopbits, flowcontrol)) {
+   pimpl_->setTimeout(timeout);
++  printf("Constructor port is: '%s' empty: %d\n", port.c_str(), port.empty());
++
++  if (port.empty() == false) {
++    open();
++  }
+ }
+ 
+ Serial::~Serial() {
+@@ -69,6 +74,7 @@ Serial::~Serial() {
+ }
+ 
+ bool Serial::open() {
++  printf("Serial::open() called!\n");
+   return pimpl_->open();
+ }
+ 
