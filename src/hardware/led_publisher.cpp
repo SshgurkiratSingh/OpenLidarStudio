@@ -13,6 +13,8 @@ using socklen_t = int;
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <fcntl.h>
+using SOCKET = int;
+#define INVALID_SOCKET -1
 #endif
 
 namespace ols::hardware {
@@ -66,8 +68,8 @@ std::string LedPublisher::getStatusMessage() {
 }
 
 void LedPublisher::discoveryLoop() {
-    int sock = socket(AF_INET, SOCK_DGRAM, 0);
-    if (sock < 0) return;
+    SOCKET sock = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sock == INVALID_SOCKET) return;
     
     int opt = 1;
 #ifdef _WIN32
@@ -126,8 +128,8 @@ void LedPublisher::discoveryLoop() {
 }
 
 void LedPublisher::streamLoop() {
-    int sock = socket(AF_INET, SOCK_DGRAM, 0);
-    if (sock < 0) return;
+    SOCKET sock = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sock == INVALID_SOCKET) return;
     
     while (running_) {
         std::string ip;
@@ -151,7 +153,7 @@ void LedPublisher::streamLoop() {
             
             // Note: If payload is large (>1400 bytes, e.g., >460 LEDs), UDP fragmentation occurs.
             // For 300 LEDs (900 bytes), it fits in one MTU packet perfectly.
-            sendto(sock, payload.data(), payload.size(), 0, (struct sockaddr*)&dest_addr, sizeof(dest_addr));
+            sendto(sock, reinterpret_cast<const char*>(payload.data()), payload.size(), 0, (struct sockaddr*)&dest_addr, sizeof(dest_addr));
         }
         
         std::this_thread::sleep_for(std::chrono::milliseconds(16)); // ~60 Hz
